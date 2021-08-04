@@ -1,11 +1,9 @@
 import org.apache.thrift.TException;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
-public class SongServiceHandler implements SongService.Iface{
+public class SongServiceHandler implements SongService.Iface {
     Map<Integer, Song> hashMapSong = new HashMap<>();
     Map<Integer, Like> hashMapLike = new HashMap<>();
     Map<Integer, Listen> hashMapListen = new HashMap<>();
@@ -88,5 +86,56 @@ public class SongServiceHandler implements SongService.Iface{
             hashMapListen.put(songId, new Listen(listenId, songId, 1));
             return 1;
         }
+    }
+
+    @Override
+    public List<Song> getTopSongBaseOnLike() throws TException {
+        // convert hash map value to list
+        List<Like> songList = new ArrayList<>(hashMapLike.values());
+
+        //get top 1 Liked song.
+        Comparator<Like> comparator = Comparator.comparingInt(Like::getNumLike).reversed();
+        List<Like> topSong = songList.stream()
+                .sorted(comparator)
+                .limit(1)
+                .collect(Collectors.toList());
+
+        //get list of top 10 id
+        List<Integer> songIdList = topSong.stream()
+                .map(Like::getSongid)
+                .collect(Collectors.toList());
+
+        //get list of song from hashMapSong
+        List<Song> result = new LinkedList<>();
+        for (int i : songIdList) {
+            result.add(hashMapSong.get(i));
+        }
+        return result;
+    }
+
+    @Override
+    public List<Song> getTopSongBaseOnListen() throws TException {
+        List<Listen> listenList = new ArrayList<>(hashMapListen.values());
+
+        //get top song
+        Comparator<Listen> comparator = Comparator.comparingInt(Listen::getNumListen);
+        List<Listen> topListen = listenList.stream()
+                .sorted(comparator)
+                .limit(1) //just top 1 song
+                .collect(Collectors.toList());
+
+        //map to list of songId
+        List<Integer> songIdList;
+        songIdList = topListen.stream()
+                .map(Listen::getSongid)
+                .collect(Collectors.toList());
+
+        //get song object in hashMap and append to list
+        List<Song> result = new LinkedList<>();
+        for (int i : songIdList) {
+            result.add(hashMapSong.get(i));
+        }
+
+        return result;
     }
 }

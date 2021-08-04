@@ -47,6 +47,13 @@ public class SongClient {
             performIncreaseListen(client, 1);
             performIncreaseListen(client, 1);
 
+            //test get top like
+            performLike(client, 2);
+            performLike(client, 2);
+            performLike(client, 2);
+            performLike(client, 2);
+            performLike(client, 2);
+            getTopSongBaseOnLike(client);
 
 
         } catch (TException e) {
@@ -105,6 +112,15 @@ public class SongClient {
         try {
             int listen = client.performIncreaseListen(songId);
             System.out.println("listen :" + listen);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void getTopSongBaseOnLike(SongService.Client client) {
+        try {
+            List<Song> list = client.getTopSongBaseOnLike();
+            System.out.println("List song:\n" + list);
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -29,4 +29,7 @@ service SongService{
     int performUnlike(1: int songId)
 
     int performIncreaseListen(1: int songId)
+
+    list<Song> getTopSongBaseOnLike()
+    list<Song> getTopSongBaseOnListen()
 }
