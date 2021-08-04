@@ -47,7 +47,7 @@ public class SongServiceHandler implements SongService.Iface{
         Like likeToUpdate = hashMapLike.get(songId).deepCopy();
         likeToUpdate.setNumLike(likeToUpdate.getNumLike() + valueToAdd);
         hashMapLike.put(songId, likeToUpdate);
-        return likeToUpdate.getNumLike();
+        return hashMapLike.get(songId).getNumLike();
     }
 
     @Override
@@ -75,15 +75,18 @@ public class SongServiceHandler implements SongService.Iface{
         Listen listenToUpdate = hashMapListen.get(songid);
         listenToUpdate.setNumListen(listenToUpdate.getNumListen() + valueToAdd);
         hashMapListen.put(songid, listenToUpdate);
-        return listenToUpdate.getNumListen();
+        return hashMapListen.get(songid).getNumListen();
     }
 
     @Override
     public int performIncreaseListen(int songId) throws TException {
         // songId is also id field of Listen table, also key of hashMapListen
         if (hashMapListen.containsKey(songId)) {
-            performAddListen(songId, 1);
+            return performAddListen(songId, 1);
+        } else {
+            int listenId = songId;
+            hashMapListen.put(songId, new Listen(listenId, songId, 1));
+            return 1;
         }
-        return 0;
     }
 }

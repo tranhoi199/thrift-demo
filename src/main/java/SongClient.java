@@ -37,6 +37,17 @@ public class SongClient {
             performLike(client, 1);
             performLike(client, 1);
 
+            //test decrese unlike
+            performUnlike(client, 1);
+            performUnlike(client, 1);
+
+            //test increase listen
+            performIncreaseListen(client, 1);
+            performIncreaseListen(client, 1);
+            performIncreaseListen(client, 1);
+            performIncreaseListen(client, 1);
+
+
 
         } catch (TException e) {
             e.printStackTrace();
@@ -80,5 +91,25 @@ public class SongClient {
             e.printStackTrace();
         }
     }
+
+    public static void performUnlike(SongService.Client client, int songId) {
+        try {
+            int like = client.performUnlike(songId);
+            System.out.println("like :" + like);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void performIncreaseListen(SongService.Client client, int songId) {
+        try {
+            int listen = client.performIncreaseListen(songId);
+            System.out.println("listen :" + listen);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
 
 }
