@@ -1,6 +1,10 @@
 import org.apache.thrift.TException;
 
 import java.util.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class SongServiceHandler implements SongService.Iface {
@@ -11,6 +15,8 @@ public class SongServiceHandler implements SongService.Iface {
 
     Map<Integer, String> hashMapArtist = new HashMap<>();
 
+    List<Song> listTopSongOnLike = new LinkedList<>();
+
     public SongServiceHandler() throws TException {
         Song song1 = new Song(1, "Photograph", Arrays.asList("Ed Sheeran"));
         Song song2 = new Song(2, "Shape of you", Arrays.asList("Ed Sheeran"));
@@ -18,6 +24,7 @@ public class SongServiceHandler implements SongService.Iface {
         addSong(song1);
         addSong(song2);
         addSong(song3);
+
     }
 
     @Override
@@ -85,10 +92,37 @@ public class SongServiceHandler implements SongService.Iface {
         return 200;
     }
 
+    private void _calculateTopSongBaseOnLike() {
+        // convert hash map value to list
+        List<Like> songList = new ArrayList<>(hashMapLike.values());
+
+        //get top 1 Liked song.
+        Comparator<Like> comparator = Comparator.comparingInt(Like::getNumLike).reversed();
+        List<Like> topSong = songList.stream()
+                .sorted(comparator)
+                .limit(1)
+                .collect(Collectors.toList());
+
+        //get list of top 1 id
+        List<Integer> songIdList = topSong.stream()
+                .map(Like::getSongid)
+                .collect(Collectors.toList());
+
+        //get list of song from hashMapSong
+        List<Song> result = new LinkedList<>();
+        for (int i : songIdList) {
+            result.add(hashMapSong.get(i));
+        }
+        listTopSongOnLike = result;
+    }
+
     private int _performAddLike(int songId, int valueToAdd) {
+
         Like likeToUpdate = hashMapLike.get(songId).deepCopy();
         likeToUpdate.setNumLike(likeToUpdate.getNumLike() + valueToAdd);
         hashMapLike.put(songId, likeToUpdate);
+        //cal to recalculate top song base on like
+        _calculateTopSongBaseOnLike();
         return hashMapLike.get(songId).getNumLike();
     }
 
@@ -145,33 +179,14 @@ public class SongServiceHandler implements SongService.Iface {
         return new ArtistListSongResponse(406, null);
     }
 
+
+
     @Override
     public List<Song> getTopSongBaseOnLike() throws TException {
-        // convert hash map value to list
-        List<Like> songList = new ArrayList<>(hashMapLike.values());
-
-        //get top 1 Liked song.
-        Comparator<Like> comparator = Comparator.comparingInt(Like::getNumLike).reversed();
-        List<Like> topSong = songList.stream()
-                .sorted(comparator)
-                .limit(1)
-                .collect(Collectors.toList());
-
-        //get list of top 10 id
-        List<Integer> songIdList = topSong.stream()
-                .map(Like::getSongid)
-                .collect(Collectors.toList());
-
-        //get list of song from hashMapSong
-        List<Song> result = new LinkedList<>();
-        for (int i : songIdList) {
-            result.add(hashMapSong.get(i));
-        }
-        return result;
+        return listTopSongOnLike;
     }
 
-    @Override
-    public List<Song> getTopSongBaseOnListen() throws TException {
+    private List<Song> _calculateTopSongBaseOnListen() {
         List<Listen> listenList = new ArrayList<>(hashMapListen.values());
 
         //get top song
@@ -194,5 +209,11 @@ public class SongServiceHandler implements SongService.Iface {
         }
 
         return result;
+    }
+
+
+    @Override
+    public List<Song> getTopSongBaseOnListen() throws TException {
+        return _calculateTopSongBaseOnListen();
     }
 }

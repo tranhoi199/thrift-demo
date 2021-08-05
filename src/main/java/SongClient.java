@@ -53,7 +53,12 @@ public class SongClient {
             performLike(client, 2);
             performLike(client, 2);
             performLike(client, 2);
+            System.out.println("get top song liked");
             getTopSongBaseOnLike(client);
+
+            //test get top song listen
+            System.out.println("get top song listen");
+            getTopSongBaseOnListen(client);
 
             //get artist list song
             performGetSongByArtist(client,"Ed Sheeran");
@@ -134,6 +139,15 @@ public class SongClient {
     public static void getTopSongBaseOnLike(SongService.Client client) {
         try {
             List<Song> list = client.getTopSongBaseOnLike();
+            System.out.println("List song:\n" + list);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void getTopSongBaseOnListen(SongService.Client client) {
+        try {
+            List<Song> list = client.getTopSongBaseOnListen();
             System.out.println("List song:\n" + list);
         } catch (Exception e) {
             e.printStackTrace();
