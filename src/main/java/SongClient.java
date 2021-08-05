@@ -24,11 +24,11 @@ public class SongClient {
             performRemoveSong(client, 3);
 
             //test update song
-            Song temp = client.getSong(1);
-            List singers = temp.getSinger();
+            SongResponse temp = client.getSong(1);
+            List singers = temp.getSong().getSinger();
             singers.add("Me");
-            temp.setSinger(singers);
-            performUpdateSong(client, temp);
+            temp.getSong().setSinger(singers);
+            performUpdateSong(client, temp.getSong());
             performGetSong(client, 1);
 
             //test increase like
@@ -55,6 +55,9 @@ public class SongClient {
             performLike(client, 2);
             getTopSongBaseOnLike(client);
 
+            //get artist list song
+            performGetSongByArtist(client,"Ed Sheeran");
+
 
         } catch (TException e) {
             e.printStackTrace();
@@ -63,8 +66,19 @@ public class SongClient {
 
     public static void performGetSong(SongService.Client client, int id) {
         try {
-            Song song = client.getSong(id);
+            SongResponse song = client.getSong(id);
             System.out.println("song got: " + song.toString());
+        } catch (Exception e) {
+            System.out.println("unkown result");
+            e.printStackTrace();
+        }
+
+    }
+
+    public static void performGetSongByArtist(SongService.Client client, String artistName) {
+        try {
+            ArtistListSongResponse listSongResponse = client.getSongsByArtist(artistName);
+            System.out.println("List song got: " + listSongResponse.toString());
         } catch (Exception e) {
             System.out.println("unkown result");
             e.printStackTrace();

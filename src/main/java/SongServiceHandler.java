@@ -7,41 +7,85 @@ public class SongServiceHandler implements SongService.Iface {
     Map<Integer, Song> hashMapSong = new HashMap<>();
     Map<Integer, Like> hashMapLike = new HashMap<>();
     Map<Integer, Listen> hashMapListen = new HashMap<>();
+    Map<String, List<Integer>> hashMapArtistListSong = new HashMap<>();
 
-    public SongServiceHandler() {
+    Map<Integer, String> hashMapArtist = new HashMap<>();
+
+    public SongServiceHandler() throws TException {
         Song song1 = new Song(1, "Photograph", Arrays.asList("Ed Sheeran"));
         Song song2 = new Song(2, "Shape of you", Arrays.asList("Ed Sheeran"));
-        hashMapSong.put(1, song1);
-        hashMapSong.put(2, song2);
+        Song song3 = new Song(3, "Drown", Arrays.asList("Martine Garrix", "Clinton Kane"));
+        addSong(song1);
+        addSong(song2);
+        addSong(song3);
     }
 
     @Override
-    public Song getSong(int id) throws TException {
-        // key id in hashMap also a id in Song table
-        if (hashMapSong.containsKey(id)) {
-            return hashMapSong.get(id);
-        } else {
-            return null;
+    public int addSong(Song song) throws TException {
+        // add new song to Song table
+        hashMapSong.put(hashMapSong.size() + 1, song);
+
+        // add artist to Artist table
+        List<String> listArtist = song.getSinger();
+        for (String artist : listArtist) {
+            if (!hashMapArtist.containsValue(artist)) {
+                hashMapArtist.put(hashMapArtist.size() + 1, artist);
+            }
         }
 
+        // add song to artistSong table (hashMapArtistSong)
+        // hashMapArtistSong has key is artist name and value is list of songId
+        for (String artist: listArtist) {
+            if (!hashMapArtistListSong.containsKey(artist)) {
+                // add new artist in ArtistSong table
+                hashMapArtistListSong.put(artist, Arrays.asList(song.getId()));
+            }
+            else {
+                //get list song and update
+                List<Integer> currentListSongId = hashMapArtistListSong.get(artist);
+                List<Integer> updatedListSong = new ArrayList<>(currentListSongId);
+                updatedListSong.add(song.getId());
+                //update list song in map
+                hashMapArtistListSong.put(artist, updatedListSong);
+            }
+        }
+        return 200;
     }
 
     @Override
-    public void removeSong(int id) throws TException {
+    public SongResponse getSong(int id) throws TException {
+        // key id in hashMap also a id in Song table
+        if (hashMapSong.containsKey(id)) {
+            Song song = hashMapSong.get(id);
+            return new SongResponse(200, song);
+        }
+        return new SongResponse(406, null);
+    }
+
+    @Override
+    public int removeSong(int id) throws TException {
         // key id in hashMap also a id in Song table
         if (hashMapSong.containsKey(id)) {
             hashMapSong.remove(id);
+            return 200;
         }
+        return 406;
     }
 
     @Override
-    public void updateSong(Song song) throws TException {
+    public int updateSong(Song song) throws TException {
+
         // key id in hashMap also a id in Song table
         int id = song.getId();
+        // if invalid id
+        if (!hashMapSong.containsKey(id)) {
+            return 406;
+        }
         hashMapSong.put(id, song);
+        return 200;
     }
 
-    public int performAddLike(int songId, int valueToAdd) {
+    private int _performAddLike(int songId, int valueToAdd) {
         Like likeToUpdate = hashMapLike.get(songId).deepCopy();
         likeToUpdate.setNumLike(likeToUpdate.getNumLike() + valueToAdd);
         hashMapLike.put(songId, likeToUpdate);
@@ -52,24 +96,23 @@ public class SongServiceHandler implements SongService.Iface {
     public int performLike(int songId) throws TException {
         // songId is also id field of Like table, also key of hashMapLike
         if (hashMapLike.containsKey(songId)) {
-            return performAddLike(songId, 1);
-        } else {
-            int likeId = songId;
-            hashMapLike.put(songId, new Like(likeId, songId, 1));
-            return 1;
+            return _performAddLike(songId, 1);
         }
+
+        int likeId = songId;
+        hashMapLike.put(songId, new Like(likeId, songId, 1));
+        return 1;
     }
 
     @Override
     public int performUnlike(int songId) throws TException {
         if (hashMapLike.containsKey(songId)) {
-            return performAddLike(songId, -1);
-        } else {
-            return -1;
+            return _performAddLike(songId, -1);
         }
+        return -1;
     }
 
-    public int performAddListen(int songid, int valueToAdd) {
+    public int _performAddListen(int songid, int valueToAdd) {
         Listen listenToUpdate = hashMapListen.get(songid);
         listenToUpdate.setNumListen(listenToUpdate.getNumListen() + valueToAdd);
         hashMapListen.put(songid, listenToUpdate);
@@ -80,12 +123,26 @@ public class SongServiceHandler implements SongService.Iface {
     public int performIncreaseListen(int songId) throws TException {
         // songId is also id field of Listen table, also key of hashMapListen
         if (hashMapListen.containsKey(songId)) {
-            return performAddListen(songId, 1);
-        } else {
-            int listenId = songId;
-            hashMapListen.put(songId, new Listen(listenId, songId, 1));
-            return 1;
+            return _performAddListen(songId, 1);
         }
+
+        int listenId = songId;
+        hashMapListen.put(songId, new Listen(listenId, songId, 1));
+        return 1;
+    }
+
+    @Override
+    public ArtistListSongResponse getSongsByArtist(String artist) throws TException {
+
+        if (hashMapArtist.containsValue(artist)) {
+            List<Integer> listSongIdOfArtist = hashMapArtistListSong.get(artist);
+            List<Song> songList = (List<Song>) listSongIdOfArtist.stream()
+                    .map(item -> hashMapSong.get(item))
+                    .collect(Collectors.toList());
+
+            return new ArtistListSongResponse(200, songList);
+        }
+        return new ArtistListSongResponse(406, null);
     }
 
     @Override

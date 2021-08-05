@@ -19,16 +19,29 @@ struct Listen{
     3: int numListen
 }
 
+struct ArtistListSongResponse{
+    1: int code
+    2: list<Song> listSong
+}
+
+struct SongResponse{
+    1: int code
+    2: Song song
+}
+
 service SongService{
 
-    Song getSong(1: int id)
-    void removeSong(1: int id)
-    void updateSong(1: Song song)
+    SongResponse getSong(1: int id)
+    int removeSong(1: int id)
+    int updateSong(1: Song song)
+    int addSong(1: Song song)
 
     int performLike(1: int songId)
     int performUnlike(1: int songId)
 
     int performIncreaseListen(1: int songId)
+
+    ArtistListSongResponse getSongsByArtist(1: string artist)
 
     list<Song> getTopSongBaseOnLike()
     list<Song> getTopSongBaseOnListen()
