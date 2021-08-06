@@ -20,8 +20,8 @@ public class SongServiceHandler implements SongService.Iface {
 
     Map<Integer, String> hashMapArtist = ArtistRepo.getInstance().getHashMapArtist();
 
-    List<Song> listTopSongOnLike = TopSongsLikeRepo.getInstance().getListTopSongOnLike();
-    List<Song> listTopSongOnListen = TopSongsListenRepo.getInstance().getListTopSongOnListen();
+    List<Song> listTopSongOnLike = new ArrayList<>(TopSongsLikeRepo.getInstance().getListTopSongOnLike());
+    List<Song> listTopSongOnListen = new ArrayList<>(TopSongsListenRepo.getInstance().getListTopSongOnListen());
 
     Object lockAddSong = new Object();
 
@@ -106,11 +106,12 @@ public class SongServiceHandler implements SongService.Iface {
         // convert hash map value to list
         List<Like> songList = new ArrayList<>(hashMapLike.values());
 
+        int limitValue = songList.size() >= 50 ? 50 : songList.size();
         //get top 1 Liked song.
         Comparator<Like> comparator = Comparator.comparingInt(Like::getNumLike).reversed();
         List<Like> topSong = songList.stream()
                 .sorted(comparator)
-                .limit(1)
+                .limit(limitValue)
                 .collect(Collectors.toList());
 
         //get list of top 1 id
@@ -197,12 +198,12 @@ public class SongServiceHandler implements SongService.Iface {
 
     public List<Song> _calculateTopSongBaseOnListen() {
         List<Listen> listenList = new ArrayList<>(hashMapListen.values());
-
+        int limitValue = listenList.size() >= 50 ? 50 : listenList.size();
         //default calculate top 50
         Comparator<Listen> comparator = Comparator.comparingInt(Listen::getNumListen);
         List<Listen> topListen = listenList.stream()
                 .sorted(comparator)
-                .limit(1) //just top 1 song
+                .limit(limitValue) //just top 1 song
                 .collect(Collectors.toList());
 
         //map to list of songId
@@ -222,6 +223,11 @@ public class SongServiceHandler implements SongService.Iface {
 
     @Override
     public ArtistListSongResponse getTopSongBaseOnListen(int numbefOfTop) throws TException {
-        return new ArtistListSongResponse(200, listTopSongOnListen);
+        if (numbefOfTop >= listTopSongOnListen.size() || numbefOfTop < 1) {
+            return new ArtistListSongResponse(200, listTopSongOnListen);
+        }
+
+        List<Song> ret = listTopSongOnListen.subList(0, numbefOfTop);
+        return new ArtistListSongResponse(200, ret);
     }
 }

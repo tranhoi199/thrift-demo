@@ -48,6 +48,8 @@ public class SongClient {
             performIncreaseListen(client, 1);
             performIncreaseListen(client, 1);
 
+            performIncreaseListen(client, 2);
+
             //test get top like
             performLike(client, 2);
             performLike(client, 2);
@@ -55,11 +57,11 @@ public class SongClient {
             performLike(client, 2);
             performLike(client, 2);
             System.out.println("get top song liked");
-            getTopSongBaseOnLike(client, 1);
+            getTopSongBaseOnLike(client, 2);
 
             //test get top song listen
             System.out.println("get top song listen");
-            getTopSongBaseOnListen(client, 1);
+            getTopSongBaseOnListen(client, 2);
 
             //get artist list song
             System.out.println("List song of artist:");
@@ -71,24 +73,24 @@ public class SongClient {
             performGetSong(client, 4);
             performGetSong(client, 3);
 
-//            new Thread(() -> {
-//                for (int i = 0; i < 10; i++) {
-//                    performLike(client, 2);
-//                }
-//            }).start();
+            new Thread(() -> {
+                for (int i = 0; i < 10; i++) {
+                    performLike(client, 2);
+                }
+            }).start();
 
-//            for(int i = 0; i < 10; i++){
-//                TTransport transport1 = new TFramedTransport(new TSocket("localhost", 9090));
-//                transport1.open();
-//
-//                TProtocol protocol1 = new  TBinaryProtocol(transport1);
-//                SongService.Client client1 = new SongService.Client(protocol1);
-//                new Thread(() -> {
-//                    for(int j =0 ;j < 10;j++){
-//                        performLike(client1, 2);
-//                    }
-//                }).start();
-//            }
+            for(int i = 0; i < 10; i++){
+                TTransport transport1 = new TFramedTransport(new TSocket("localhost", 9090));
+                transport1.open();
+
+                TProtocol protocol1 = new  TBinaryProtocol(transport1);
+                SongService.Client client1 = new SongService.Client(protocol1);
+                new Thread(() -> {
+                    for(int j =0 ;j < 10;j++){
+                        performLike(client1, 2);
+                    }
+                }).start();
+            }
 //
 //            for(int k = 0; k < 10; k++){
 //                TTransport transport1 = new TFramedTransport(new TSocket("localhost", 9090));

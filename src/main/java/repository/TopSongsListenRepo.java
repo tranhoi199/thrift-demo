@@ -2,11 +2,12 @@ package repository;
 
 import gen.Song;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 public class TopSongsListenRepo {
-    List<Song> listTopSongOnListen = new LinkedList<>();
+    List<Song> listTopSongOnListen = new ArrayList<>();
 
     private TopSongsListenRepo() {
     }
