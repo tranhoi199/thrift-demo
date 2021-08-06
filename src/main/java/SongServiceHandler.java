@@ -35,38 +35,34 @@ public class SongServiceHandler implements SongService.Iface {
         addSong(song2);
         addSong(song3);
         addSong(song4);
-
     }
 
     @Override
-    public int  addSong(Song song) throws TException {
+    public int addSong(Song song) throws TException {
         // add new song to Song table
-        synchronized (lockAddSong){
-            hashMapSong.put(hashMapSong.size() + 1, song);
+        hashMapSong.put(hashMapSong.size() + 1, song);
 
-            // add artist to Artist table
-            List<String> listArtist = song.getSinger();
-            for (String artist : listArtist) {
-                if (!hashMapArtist.containsValue(artist)) {
-                    hashMapArtist.put(hashMapArtist.size() + 1, artist);
-                }
+        // add artist to Artist table
+        List<String> listArtist = song.getSinger();
+        for (String artist : listArtist) {
+            if (!hashMapArtist.containsValue(artist)) {
+                hashMapArtist.put(hashMapArtist.size() + 1, artist);
             }
-
-            // add song to artistSong table (hashMapArtistSong)
-            // hashMapArtistSong has key is artist name and value is list of songId
-            for (String artist: listArtist) {
-                if (!hashMapArtistListSong.containsKey(artist)) {
-                    // add new artist in ArtistSong table
-                    hashMapArtistListSong.put(artist, new ArrayList<>(Arrays.asList(song.getId())));
-                    return 200;
-                }
-                //get list song and update
-                List<Integer> currentListSongId = hashMapArtistListSong.get(artist);
-                currentListSongId.add(song.getId());
-            }
-            return 200;
         }
 
+        // add song to artistSong table (hashMapArtistSong)
+        // hashMapArtistSong has key is artist name and value is list of songId
+        for (String artist: listArtist) {
+            if (!hashMapArtistListSong.containsKey(artist)) {
+                // add new artist in ArtistSong table
+                hashMapArtistListSong.put(artist, new ArrayList<>(Arrays.asList(song.getId())));
+                return 200;
+            }
+            //get list song and update
+            List<Integer> currentListSongId = hashMapArtistListSong.get(artist);
+            currentListSongId.add(song.getId());
+        }
+        return 200;
     }
 
     @Override
@@ -193,7 +189,12 @@ public class SongServiceHandler implements SongService.Iface {
 
     @Override
     public ArtistListSongResponse getTopSongBaseOnLike(int numbefOfTop) throws TException {
-        return new ArtistListSongResponse(200, listTopSongOnLike) ;
+        if (numbefOfTop >= listTopSongOnLike.size() || numbefOfTop < 1) {
+            return new ArtistListSongResponse(200, listTopSongOnLike);
+        }
+
+        List<Song> ret = listTopSongOnLike.subList(0, numbefOfTop);
+        return new ArtistListSongResponse(200, ret);
     }
 
     public List<Song> _calculateTopSongBaseOnListen() {
