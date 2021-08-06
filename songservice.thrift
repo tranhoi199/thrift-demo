@@ -8,15 +8,13 @@ struct Song{
 }
 
 struct Like{
-    1: int id
-    2: int Songid
-    3: int numLike
+    1: int Songid
+    2: int numLike
 }
 
 struct Listen{
-    1: int id
-    2: int Songid
-    3: int numListen
+    1: int Songid
+    2: int numListen
 }
 
 struct ArtistListSongResponse{
@@ -43,6 +41,6 @@ service SongService{
 
     ArtistListSongResponse getSongsByArtist(1: string artist)
 
-    list<Song> getTopSongBaseOnLike()
-    list<Song> getTopSongBaseOnListen()
+    ArtistListSongResponse getTopSongBaseOnLike(1: int numbefOfTop)
+    ArtistListSongResponse getTopSongBaseOnListen(1: int numberOfTop)
 }

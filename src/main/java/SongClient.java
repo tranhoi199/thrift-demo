@@ -3,6 +3,7 @@ import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
+import org.apache.thrift.transport.layered.TFramedTransport;
 
 import java.util.List;
 
@@ -11,7 +12,7 @@ public class SongClient {
         try {
             TTransport transport;
 
-            transport = new TSocket("localhost", 9090);
+            transport = new TFramedTransport(new TSocket("localhost", 9090));
             transport.open();
 
             TProtocol protocol = new TBinaryProtocol(transport);
@@ -21,15 +22,15 @@ public class SongClient {
 
             performGetSong(client, 2);
 
-            performRemoveSong(client, 3);
+//            performRemoveSong(client, 3);
 
             //test update song
-            SongResponse temp = client.getSong(1);
-            List singers = temp.getSong().getSinger();
-            singers.add("Me");
-            temp.getSong().setSinger(singers);
-            performUpdateSong(client, temp.getSong());
-            performGetSong(client, 1);
+//            SongResponse temp = client.getSong(1);
+//            List singers = temp.getSong().getSinger();
+//            singers.add("Me");
+//            temp.getSong().setSinger(singers);
+//            performUpdateSong(client, temp.getSong());
+//            performGetSong(client, 1);
 
             //test increase like
             performLike(client, 1);
@@ -54,14 +55,53 @@ public class SongClient {
             performLike(client, 2);
             performLike(client, 2);
             System.out.println("get top song liked");
-            getTopSongBaseOnLike(client);
+            getTopSongBaseOnLike(client, 1);
 
             //test get top song listen
             System.out.println("get top song listen");
-            getTopSongBaseOnListen(client);
+            getTopSongBaseOnListen(client, 1);
 
             //get artist list song
+            System.out.println("List song of artist:");
             performGetSongByArtist(client,"Ed Sheeran");
+
+//            System.out.println("List song of artist:");
+//            performGetSongByArtist(client,"Me");
+
+            performGetSong(client, 4);
+            performGetSong(client, 3);
+
+//            new Thread(() -> {
+//                for (int i = 0; i < 10; i++) {
+//                    performLike(client, 2);
+//                }
+//            }).start();
+
+//            for(int i = 0; i < 10; i++){
+//                TTransport transport1 = new TFramedTransport(new TSocket("localhost", 9090));
+//                transport1.open();
+//
+//                TProtocol protocol1 = new  TBinaryProtocol(transport1);
+//                SongService.Client client1 = new SongService.Client(protocol1);
+//                new Thread(() -> {
+//                    for(int j =0 ;j < 10;j++){
+//                        performLike(client1, 2);
+//                    }
+//                }).start();
+//            }
+//
+//            for(int k = 0; k < 10; k++){
+//                TTransport transport1 = new TFramedTransport(new TSocket("localhost", 9090));
+//                transport1.open();
+//
+//                TProtocol protocol1 = new  TBinaryProtocol(transport1);
+//                SongService.Client client1 = new SongService.Client(protocol1);
+//                new Thread(() -> {
+//                    for(int j =0 ;j < 10;j++){
+//                        performIncreaseListen(client1, 2);
+//                    }
+//                }).start();
+//            }
 
 
         } catch (TException e) {
@@ -136,19 +176,19 @@ public class SongClient {
         }
     }
 
-    public static void getTopSongBaseOnLike(SongService.Client client) {
+    public static void getTopSongBaseOnLike(SongService.Client client, int numberOfTop) {
         try {
-            List<Song> list = client.getTopSongBaseOnLike();
-            System.out.println("List song:\n" + list);
+            ArtistListSongResponse list = client.getTopSongBaseOnLike(numberOfTop);
+            System.out.println("List song:\n" + list.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void getTopSongBaseOnListen(SongService.Client client) {
+    public static void getTopSongBaseOnListen(SongService.Client client, int numberOfTop) {
         try {
-            List<Song> list = client.getTopSongBaseOnListen();
-            System.out.println("List song:\n" + list);
+            ArtistListSongResponse list = client.getTopSongBaseOnListen(numberOfTop);
+            System.out.println("List song:\n" + list.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }

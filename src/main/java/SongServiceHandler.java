@@ -1,62 +1,72 @@
+import gen.ArtistListSongResponse;
+import gen.Like;
+import gen.Listen;
+import gen.Song;
+import gen.SongResponse;
+import gen.SongService;
 import org.apache.thrift.TException;
 
 import java.util.*;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import repository.*;
+
 public class SongServiceHandler implements SongService.Iface {
-    Map<Integer, Song> hashMapSong = new HashMap<>();
-    Map<Integer, Like> hashMapLike = new HashMap<>();
-    Map<Integer, Listen> hashMapListen = new HashMap<>();
-    Map<String, List<Integer>> hashMapArtistListSong = new HashMap<>();
 
-    Map<Integer, String> hashMapArtist = new HashMap<>();
+    Map<Integer, Song> hashMapSong = SongRepo.getInstance().getHashMapSong();
+    Map<Integer, Like> hashMapLike = LikeRepo.getInstance().getHashMapLike();
+    Map<Integer, Listen> hashMapListen = ListenRepo.getInstance().getHashMapListen();
+    Map<String, List<Integer>> hashMapArtistListSong = ArtistSongsRepo.getInstance().getHashMapArtistListSong();
 
-    List<Song> listTopSongOnLike = new LinkedList<>();
+    Map<Integer, String> hashMapArtist = ArtistRepo.getInstance().getHashMapArtist();
+
+    List<Song> listTopSongOnLike = TopSongsLikeRepo.getInstance().getListTopSongOnLike();
+    List<Song> listTopSongOnListen = TopSongsListenRepo.getInstance().getListTopSongOnListen();
+
+    Object lockAddSong = new Object();
+
 
     public SongServiceHandler() throws TException {
         Song song1 = new Song(1, "Photograph", Arrays.asList("Ed Sheeran"));
         Song song2 = new Song(2, "Shape of you", Arrays.asList("Ed Sheeran"));
         Song song3 = new Song(3, "Drown", Arrays.asList("Martine Garrix", "Clinton Kane"));
+        Song song4 = new Song(4, "Perfect", Arrays.asList("Ed Sheeran"));
         addSong(song1);
         addSong(song2);
         addSong(song3);
+        addSong(song4);
 
     }
 
     @Override
-    public int addSong(Song song) throws TException {
+    public int  addSong(Song song) throws TException {
         // add new song to Song table
-        hashMapSong.put(hashMapSong.size() + 1, song);
+        synchronized (lockAddSong){
+            hashMapSong.put(hashMapSong.size() + 1, song);
 
-        // add artist to Artist table
-        List<String> listArtist = song.getSinger();
-        for (String artist : listArtist) {
-            if (!hashMapArtist.containsValue(artist)) {
-                hashMapArtist.put(hashMapArtist.size() + 1, artist);
+            // add artist to Artist table
+            List<String> listArtist = song.getSinger();
+            for (String artist : listArtist) {
+                if (!hashMapArtist.containsValue(artist)) {
+                    hashMapArtist.put(hashMapArtist.size() + 1, artist);
+                }
             }
-        }
 
-        // add song to artistSong table (hashMapArtistSong)
-        // hashMapArtistSong has key is artist name and value is list of songId
-        for (String artist: listArtist) {
-            if (!hashMapArtistListSong.containsKey(artist)) {
-                // add new artist in ArtistSong table
-                hashMapArtistListSong.put(artist, Arrays.asList(song.getId()));
-            }
-            else {
+            // add song to artistSong table (hashMapArtistSong)
+            // hashMapArtistSong has key is artist name and value is list of songId
+            for (String artist: listArtist) {
+                if (!hashMapArtistListSong.containsKey(artist)) {
+                    // add new artist in ArtistSong table
+                    hashMapArtistListSong.put(artist, new ArrayList<>(Arrays.asList(song.getId())));
+                    return 200;
+                }
                 //get list song and update
                 List<Integer> currentListSongId = hashMapArtistListSong.get(artist);
-                List<Integer> updatedListSong = new ArrayList<>(currentListSongId);
-                updatedListSong.add(song.getId());
-                //update list song in map
-                hashMapArtistListSong.put(artist, updatedListSong);
+                currentListSongId.add(song.getId());
             }
+            return 200;
         }
-        return 200;
+
     }
 
     @Override
@@ -92,7 +102,7 @@ public class SongServiceHandler implements SongService.Iface {
         return 200;
     }
 
-    private void _calculateTopSongBaseOnLike() {
+    public void _calculateTopSongBaseOnLike() {
         // convert hash map value to list
         List<Like> songList = new ArrayList<>(hashMapLike.values());
 
@@ -121,25 +131,23 @@ public class SongServiceHandler implements SongService.Iface {
         Like likeToUpdate = hashMapLike.get(songId).deepCopy();
         likeToUpdate.setNumLike(likeToUpdate.getNumLike() + valueToAdd);
         hashMapLike.put(songId, likeToUpdate);
-        //cal to recalculate top song base on like
-        _calculateTopSongBaseOnLike();
+
         return hashMapLike.get(songId).getNumLike();
     }
 
     @Override
-    public int performLike(int songId) throws TException {
+    public synchronized int performLike(int songId) throws TException {
         // songId is also id field of Like table, also key of hashMapLike
         if (hashMapLike.containsKey(songId)) {
             return _performAddLike(songId, 1);
         }
 
-        int likeId = songId;
-        hashMapLike.put(songId, new Like(likeId, songId, 1));
+        hashMapLike.put(songId, new Like(songId, 1));
         return 1;
     }
 
     @Override
-    public int performUnlike(int songId) throws TException {
+    public synchronized int performUnlike(int songId) throws TException {
         if (hashMapLike.containsKey(songId)) {
             return _performAddLike(songId, -1);
         }
@@ -154,14 +162,13 @@ public class SongServiceHandler implements SongService.Iface {
     }
 
     @Override
-    public int performIncreaseListen(int songId) throws TException {
+    public synchronized int performIncreaseListen(int songId) throws TException {
         // songId is also id field of Listen table, also key of hashMapListen
         if (hashMapListen.containsKey(songId)) {
             return _performAddListen(songId, 1);
         }
 
-        int listenId = songId;
-        hashMapListen.put(songId, new Listen(listenId, songId, 1));
+        hashMapListen.put(songId, new Listen(songId, 1));
         return 1;
     }
 
@@ -170,7 +177,9 @@ public class SongServiceHandler implements SongService.Iface {
 
         if (hashMapArtist.containsValue(artist)) {
             List<Integer> listSongIdOfArtist = hashMapArtistListSong.get(artist);
-            List<Song> songList = (List<Song>) listSongIdOfArtist.stream()
+
+            System.out.println(listSongIdOfArtist);
+            List<Song> songList = listSongIdOfArtist.stream()
                     .map(item -> hashMapSong.get(item))
                     .collect(Collectors.toList());
 
@@ -182,14 +191,14 @@ public class SongServiceHandler implements SongService.Iface {
 
 
     @Override
-    public List<Song> getTopSongBaseOnLike() throws TException {
-        return listTopSongOnLike;
+    public ArtistListSongResponse getTopSongBaseOnLike(int numbefOfTop) throws TException {
+        return new ArtistListSongResponse(200, listTopSongOnLike) ;
     }
 
-    private List<Song> _calculateTopSongBaseOnListen() {
+    public List<Song> _calculateTopSongBaseOnListen() {
         List<Listen> listenList = new ArrayList<>(hashMapListen.values());
 
-        //get top song
+        //default calculate top 50
         Comparator<Listen> comparator = Comparator.comparingInt(Listen::getNumListen);
         List<Listen> topListen = listenList.stream()
                 .sorted(comparator)
@@ -207,13 +216,12 @@ public class SongServiceHandler implements SongService.Iface {
         for (int i : songIdList) {
             result.add(hashMapSong.get(i));
         }
-
+        listTopSongOnListen = result;
         return result;
     }
 
-
     @Override
-    public List<Song> getTopSongBaseOnListen() throws TException {
-        return _calculateTopSongBaseOnListen();
+    public ArtistListSongResponse getTopSongBaseOnListen(int numbefOfTop) throws TException {
+        return new ArtistListSongResponse(200, listTopSongOnListen);
     }
 }
