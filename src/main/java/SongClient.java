@@ -92,18 +92,18 @@ public class SongClient {
                 }).start();
             }
 //
-//            for(int k = 0; k < 10; k++){
-//                TTransport transport1 = new TFramedTransport(new TSocket("localhost", 9090));
-//                transport1.open();
-//
-//                TProtocol protocol1 = new  TBinaryProtocol(transport1);
-//                SongService.Client client1 = new SongService.Client(protocol1);
-//                new Thread(() -> {
-//                    for(int j =0 ;j < 10;j++){
-//                        performIncreaseListen(client1, 2);
-//                    }
-//                }).start();
-//            }
+            for(int k = 0; k < 10; k++){
+                TTransport transport1 = new TFramedTransport(new TSocket("localhost", 9090));
+                transport1.open();
+
+                TProtocol protocol1 = new  TBinaryProtocol(transport1);
+                SongService.Client client1 = new SongService.Client(protocol1);
+                new Thread(() -> {
+                    for(int j =0 ;j < 10;j++){
+                        performIncreaseListen(client1, 2);
+                    }
+                }).start();
+            }
 
 
         } catch (TException e) {

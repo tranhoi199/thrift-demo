@@ -23,7 +23,8 @@ public class SongServiceHandler implements SongService.Iface {
     List<Song> listTopSongOnLike = new ArrayList<>(TopSongsLikeRepo.getInstance().getListTopSongOnLike());
     List<Song> listTopSongOnListen = new ArrayList<>(TopSongsListenRepo.getInstance().getListTopSongOnListen());
 
-    Object lockAddSong = new Object();
+    Object lockLike = new Object();
+    Object lockListen = new Object();
 
 
     public SongServiceHandler() throws TException {
@@ -133,22 +134,31 @@ public class SongServiceHandler implements SongService.Iface {
     }
 
     @Override
-    public synchronized int performLike(int songId) throws TException {
+    public int performLike(int songId) throws TException {
+        //return -1 if invalid songid
+        if (!hashMapSong.containsKey(songId)) {
+            return -1;
+        }
         // songId is also id field of Like table, also key of hashMapLike
         if (hashMapLike.containsKey(songId)) {
-            int result = _performAddLike(songId, 1);
-            System.out.println("result in like:" + result);
-            return result;
+            synchronized (lockLike) {
+                int result = _performAddLike(songId, 1);
+                System.out.println("result in like:" + result);
+                return result;
+            }
         }
-
-        hashMapLike.put(songId, new Like(songId, 1));
+        synchronized(lockLike) {
+            hashMapLike.put(songId, new Like(songId, 1));
+        }
         return 1;
     }
 
     @Override
-    public synchronized int performUnlike(int songId) throws TException {
+    public int performUnlike(int songId) throws TException {
         if (hashMapLike.containsKey(songId)) {
-            return _performAddLike(songId, -1);
+            synchronized (lockLike) {
+                return _performAddLike(songId, -1);
+            }
         }
         return -1;
     }
@@ -161,15 +171,22 @@ public class SongServiceHandler implements SongService.Iface {
     }
 
     @Override
-    public synchronized int performIncreaseListen(int songId) throws TException {
+    public int performIncreaseListen(int songId) throws TException {
+        if (!hashMapSong.containsKey(songId)) {
+            return -1;
+        }
         // songId is also id field of Listen table, also key of hashMapListen
         if (hashMapListen.containsKey(songId)) {
-            int result = _performAddListen(songId, 1);
-            System.out.println("result in listen: " + result);
-            return result;
+            synchronized (lockListen) {
+                int result = _performAddListen(songId, 1);
+                System.out.println("result in listen: " + result);
+                return result;
+            }
+        }
+        synchronized (lockListen) {
+            hashMapListen.put(songId, new Listen(songId, 1));
         }
 
-        hashMapListen.put(songId, new Listen(songId, 1));
         return 1;
     }
 
