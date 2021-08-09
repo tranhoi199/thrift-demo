@@ -136,7 +136,9 @@ public class SongServiceHandler implements SongService.Iface {
     public synchronized int performLike(int songId) throws TException {
         // songId is also id field of Like table, also key of hashMapLike
         if (hashMapLike.containsKey(songId)) {
-            return _performAddLike(songId, 1);
+            int result = _performAddLike(songId, 1);
+            System.out.println("result in like:" + result);
+            return result;
         }
 
         hashMapLike.put(songId, new Like(songId, 1));
@@ -162,7 +164,9 @@ public class SongServiceHandler implements SongService.Iface {
     public synchronized int performIncreaseListen(int songId) throws TException {
         // songId is also id field of Listen table, also key of hashMapListen
         if (hashMapListen.containsKey(songId)) {
-            return _performAddListen(songId, 1);
+            int result = _performAddListen(songId, 1);
+            System.out.println("result in listen: " + result);
+            return result;
         }
 
         hashMapListen.put(songId, new Listen(songId, 1));
@@ -201,7 +205,7 @@ public class SongServiceHandler implements SongService.Iface {
         List<Listen> listenList = new ArrayList<>(hashMapListen.values());
         int limitValue = listenList.size() >= 50 ? 50 : listenList.size();
         //default calculate top 50
-        Comparator<Listen> comparator = Comparator.comparingInt(Listen::getNumListen);
+        Comparator<Listen> comparator = Comparator.comparingInt(Listen::getNumListen).reversed();
         List<Listen> topListen = listenList.stream()
                 .sorted(comparator)
                 .limit(limitValue) //just top 1 song
