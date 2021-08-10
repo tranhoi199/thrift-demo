@@ -1,11 +1,14 @@
-import com.sun.org.apache.bcel.internal.generic.RET;
-import gen.*;
+package org.example;
+
+import org.example.gen.*;
 import org.apache.thrift.TException;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import repository.*;
+import org.example.repository.*;
+import org.example.gen.*;
+import org.example.repository.*;
 
 public class SongServiceHandler implements SongService.Iface {
 

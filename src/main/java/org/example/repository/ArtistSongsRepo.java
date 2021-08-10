@@ -1,4 +1,4 @@
-package repository;
+package org.example.repository;
 
 import java.util.HashMap;
 import java.util.List;

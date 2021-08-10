@@ -1,6 +1,6 @@
-package repository;
+package org.example.repository;
 
-import gen.Like;
+import org.example.gen.Like;
 
 import java.util.HashMap;
 import java.util.Map;

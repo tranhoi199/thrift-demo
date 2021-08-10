@@ -1,4 +1,6 @@
-import gen.SongService;
+package org.example;
+
+import org.example.gen.SongService;
 import org.apache.thrift.server.TServer;
 
 import org.apache.thrift.server.TThreadedSelectorServer;

@@ -1,9 +1,8 @@
-package repository;
+package org.example.repository;
 
-import gen.Song;
+import org.example.gen.Song;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 public class TopSongsListenRepo {

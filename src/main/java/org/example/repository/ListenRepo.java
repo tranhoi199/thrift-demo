@@ -1,6 +1,6 @@
-package repository;
+package org.example.repository;
 
-import gen.Listen;
+import org.example.gen.Listen;
 
 import java.util.HashMap;
 import java.util.Map;

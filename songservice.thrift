@@ -1,4 +1,4 @@
-namespace java gen
+namespace java com.example.gen
 typedef i32 int
 
 struct Song{
