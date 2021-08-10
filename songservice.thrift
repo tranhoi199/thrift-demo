@@ -1,4 +1,4 @@
-
+namespace java gen
 typedef i32 int
 
 struct Song{
@@ -27,17 +27,23 @@ struct SongResponse{
     2: Song song
 }
 
+enum ReturnCode {
+    SUCCESS = 200,
+    INVALID = 406,
+    INTERNAL_SERVER_ERROR = 500
+}
+
 service SongService{
 
     SongResponse getSong(1: int id)
-    int removeSong(1: int id)
-    int updateSong(1: Song song)
-    int addSong(1: Song song)
+    ReturnCode removeSong(1: int id)
+    ReturnCode updateSong(1: Song song)
+    ReturnCode addSong(1: Song song)
 
-    int performLike(1: int songId)
-    int performUnlike(1: int songId)
+    ReturnCode performLike(1: int songId)
+    ReturnCode performUnlike(1: int songId)
 
-    int performIncreaseListen(1: int songId)
+    ReturnCode performIncreaseListen(1: int songId)
 
     ArtistListSongResponse getSongsByArtist(1: string artist)
 

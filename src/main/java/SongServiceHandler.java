@@ -1,9 +1,5 @@
-import gen.ArtistListSongResponse;
-import gen.Like;
-import gen.Listen;
-import gen.Song;
-import gen.SongResponse;
-import gen.SongService;
+import com.sun.org.apache.bcel.internal.generic.RET;
+import gen.*;
 import org.apache.thrift.TException;
 
 import java.util.*;
@@ -39,7 +35,7 @@ public class SongServiceHandler implements SongService.Iface {
     }
 
     @Override
-    public int addSong(Song song) throws TException {
+    public ReturnCode addSong(Song song) throws TException {
         // add new song to Song table
         hashMapSong.put(hashMapSong.size() + 1, song);
 
@@ -57,13 +53,13 @@ public class SongServiceHandler implements SongService.Iface {
             if (!hashMapArtistListSong.containsKey(artist)) {
                 // add new artist in ArtistSong table
                 hashMapArtistListSong.put(artist, new ArrayList<>(Arrays.asList(song.getId())));
-                return 200;
+                return ReturnCode.SUCCESS;
             }
             //get list song and update
             List<Integer> currentListSongId = hashMapArtistListSong.get(artist);
             currentListSongId.add(song.getId());
         }
-        return 200;
+        return ReturnCode.SUCCESS;
     }
 
     @Override
@@ -77,26 +73,26 @@ public class SongServiceHandler implements SongService.Iface {
     }
 
     @Override
-    public int removeSong(int id) throws TException {
+    public ReturnCode removeSong(int id) throws TException {
         // key id in hashMap also a id in Song table
         if (hashMapSong.containsKey(id)) {
             hashMapSong.remove(id);
-            return 200;
+            return ReturnCode.SUCCESS;
         }
-        return 406;
+        return ReturnCode.INVALID;
     }
 
     @Override
-    public int updateSong(Song song) throws TException {
+    public ReturnCode updateSong(Song song) throws TException {
 
         // key id in hashMap also a id in Song table
         int id = song.getId();
         // if invalid id
         if (!hashMapSong.containsKey(id)) {
-            return 406;
+            return ReturnCode.INVALID;
         }
         hashMapSong.put(id, song);
-        return 200;
+        return ReturnCode.SUCCESS;
     }
 
     public void _calculateTopSongBaseOnLike() {
@@ -134,33 +130,34 @@ public class SongServiceHandler implements SongService.Iface {
     }
 
     @Override
-    public int performLike(int songId) throws TException {
+    public ReturnCode performLike(int songId) throws TException {
         //return -1 if invalid songid
         if (!hashMapSong.containsKey(songId)) {
-            return -1;
+            return ReturnCode.INVALID;
         }
         // songId is also id field of Like table, also key of hashMapLike
         if (hashMapLike.containsKey(songId)) {
             synchronized (lockLike) {
                 int result = _performAddLike(songId, 1);
                 System.out.println("result in like:" + result);
-                return result;
+                return ReturnCode.SUCCESS;
             }
         }
         synchronized(lockLike) {
             hashMapLike.put(songId, new Like(songId, 1));
         }
-        return 1;
+        return ReturnCode.SUCCESS;
     }
 
     @Override
-    public int performUnlike(int songId) throws TException {
+    public ReturnCode performUnlike(int songId) throws TException {
         if (hashMapLike.containsKey(songId)) {
             synchronized (lockLike) {
-                return _performAddLike(songId, -1);
+                 _performAddLike(songId, -1);
+                return ReturnCode.SUCCESS;
             }
         }
-        return -1;
+        return ReturnCode.INVALID;
     }
 
     public int _performAddListen(int songid, int valueToAdd) {
@@ -171,23 +168,23 @@ public class SongServiceHandler implements SongService.Iface {
     }
 
     @Override
-    public int performIncreaseListen(int songId) throws TException {
+    public ReturnCode performIncreaseListen(int songId) throws TException {
         if (!hashMapSong.containsKey(songId)) {
-            return -1;
+            return ReturnCode.INVALID;
         }
         // songId is also id field of Listen table, also key of hashMapListen
         if (hashMapListen.containsKey(songId)) {
             synchronized (lockListen) {
                 int result = _performAddListen(songId, 1);
                 System.out.println("result in listen: " + result);
-                return result;
+                return ReturnCode.SUCCESS;
             }
         }
         synchronized (lockListen) {
             hashMapListen.put(songId, new Listen(songId, 1));
         }
 
-        return 1;
+        return ReturnCode.SUCCESS;
     }
 
     @Override

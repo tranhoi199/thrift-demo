@@ -1,3 +1,5 @@
+import gen.SongService;
+import gen.*;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -153,7 +155,7 @@ public class SongClient {
 
     public static void performLike(SongService.Client client, int songId) {
         try {
-            int like = client.performLike(songId);
+            ReturnCode like = client.performLike(songId);
             System.out.println("like :" + like);
         } catch (Exception e) {
             e.printStackTrace();
@@ -162,7 +164,7 @@ public class SongClient {
 
     public static void performUnlike(SongService.Client client, int songId) {
         try {
-            int like = client.performUnlike(songId);
+            ReturnCode like = client.performUnlike(songId);
             System.out.println("like :" + like);
         } catch (Exception e) {
             e.printStackTrace();
@@ -171,7 +173,7 @@ public class SongClient {
 
     public static void performIncreaseListen(SongService.Client client, int songId) {
         try {
-            int listen = client.performIncreaseListen(songId);
+            ReturnCode listen = client.performIncreaseListen(songId);
             System.out.println("listen :" + listen);
         } catch (Exception e) {
             e.printStackTrace();
