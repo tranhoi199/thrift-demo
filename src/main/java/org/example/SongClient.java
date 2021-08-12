@@ -12,6 +12,7 @@ import org.apache.thrift.transport.layered.TFramedTransport;
 
 public class SongClient {
     public static void main(String[] args) {
+        long startTime = System.currentTimeMillis();
         try {
             TTransport transport;
 
@@ -112,6 +113,8 @@ public class SongClient {
         } catch (TException e) {
             e.printStackTrace();
         }
+        long endTime = System.currentTimeMillis();
+        System.out.println("eslape time" + (endTime - startTime));
     }
 
     public static void performGetSong(SongService.Client client, int id) {

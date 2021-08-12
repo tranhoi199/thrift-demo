@@ -22,8 +22,9 @@ public class SongServiceHandler implements SongService.Iface {
     List<Song> listTopSongOnLike = new ArrayList<>(TopSongsLikeRepo.getInstance().getListTopSongOnLike());
     List<Song> listTopSongOnListen = new ArrayList<>(TopSongsListenRepo.getInstance().getListTopSongOnListen());
 
-    Object lockLike = new Object();
-    Object lockListen = new Object();
+    final List<Object> lockLike = new ArrayList<Object>(10);
+    final List<Object> lockListen = new ArrayList<Object>(10);
+    Object lockId = new Object();
 
 
     public SongServiceHandler() throws TException {
@@ -35,12 +36,22 @@ public class SongServiceHandler implements SongService.Iface {
         addSong(song2);
         addSong(song3);
         addSong(song4);
+
+        //initialize lock
+        for (int i = 0; i < 10; i++) {
+            lockLike.add(new Object());
+            lockListen.add(new Object());
+        }
     }
 
     @Override
     public ReturnCode addSong(Song song) throws TException {
+        int id;
+        synchronized (lockId) {
+            id = hashMapSong.size() + 1;
+        }
         // add new song to Song table
-        hashMapSong.put(hashMapSong.size() + 1, song);
+        hashMapSong.put(id, song);
 
         // add artist to Artist table
         List<String> listArtist = song.getSinger();
@@ -140,13 +151,14 @@ public class SongServiceHandler implements SongService.Iface {
         }
         // songId is also id field of Like table, also key of hashMapLike
         if (hashMapLike.containsKey(songId)) {
-            synchronized (lockLike) {
+            synchronized (lockLike.get(songId % 10)) {
                 int result = _performAddLike(songId, 1);
                 System.out.println("result in like:" + result);
                 return ReturnCode.SUCCESS;
             }
         }
-        synchronized(lockLike) {
+
+        synchronized(lockLike.get(songId % 10)) {
             hashMapLike.put(songId, new Like(songId, 1));
         }
         return ReturnCode.SUCCESS;
@@ -155,7 +167,7 @@ public class SongServiceHandler implements SongService.Iface {
     @Override
     public ReturnCode performUnlike(int songId) throws TException {
         if (hashMapLike.containsKey(songId)) {
-            synchronized (lockLike) {
+            synchronized (lockLike.get(songId % 10)) {
                  _performAddLike(songId, -1);
                 return ReturnCode.SUCCESS;
             }
@@ -177,7 +189,7 @@ public class SongServiceHandler implements SongService.Iface {
         }
         // songId is also id field of Listen table, also key of hashMapListen
         if (hashMapListen.containsKey(songId)) {
-            synchronized (lockListen) {
+            synchronized (lockListen.get(songId % 10)) {
                 int result = _performAddListen(songId, 1);
                 System.out.println("result in listen: " + result);
                 return ReturnCode.SUCCESS;
