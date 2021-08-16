@@ -86,11 +86,50 @@ public class SongServiceHandler implements SongService.Iface {
         return new SongResponse(406, null);
     }
 
+    private void _removeArtistSong(int songId, Song song) {
+
+    }
+
+    private void _removeLikeTable(int songId) {
+        if (hashMapLike.containsKey(songId)) {
+            hashMapLike.remove(songId);
+        }
+    }
+
+    private void _removeListenTable(int songId) {
+        if (hashMapListen.containsKey(songId)) {
+            hashMapListen.remove(songId);
+        }
+    }
+
+    private void _removeArtistList(Song song) {
+        //get list of singer
+        List<String> artistsOfSong = song.getSinger();
+
+        //loop for each singer and delete song id in hashMapArtistListSong
+        for (String artist : artistsOfSong) {
+            if (hashMapArtistListSong.containsKey(artist)) {
+                List<Integer> updatedSong = new ArrayList<>(hashMapArtistListSong.get(artist));
+
+                //filter id song in list
+                List<Integer> newList = updatedSong.stream()
+                        .filter(item -> !item.equals(song.getId()))
+                        .collect(Collectors.toList());
+                //re-update song in list
+                hashMapArtistListSong.put(artist, new ArrayList<>(newList));
+            }
+        }
+    }
+
     @Override
     public ReturnCode removeSong(int id) throws TException {
         // key id in hashMap also a id in Song table
         if (hashMapSong.containsKey(id)) {
+            Song song = hashMapSong.get(id);
             hashMapSong.remove(id);
+            _removeLikeTable(id);
+            _removeListenTable(id);
+            _removeArtistList(song);
             return ReturnCode.SUCCESS;
         }
         return ReturnCode.INVALID;
@@ -208,7 +247,6 @@ public class SongServiceHandler implements SongService.Iface {
         if (hashMapArtist.containsValue(artist)) {
             List<Integer> listSongIdOfArtist = hashMapArtistListSong.get(artist);
 
-            System.out.println(listSongIdOfArtist);
             List<Song> songList = listSongIdOfArtist.stream()
                     .map(item -> hashMapSong.get(item))
                     .collect(Collectors.toList());

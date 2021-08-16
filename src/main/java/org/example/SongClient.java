@@ -77,37 +77,42 @@ public class SongClient {
             performGetSong(client, 4);
             performGetSong(client, 3);
 
-            new Thread(() -> {
-                for (int i = 0; i < 10; i++) {
-                    performLike(client, 2);
-                }
-            }).start();
+//            new Thread(() -> {
+//                for (int i = 0; i < 10; i++) {
+//                    performLike(client, 2);
+//                }
+//            }).start();
 
-            for(int i = 0; i < 10; i++){
-                TTransport transport1 = new TFramedTransport(new TSocket("localhost", 9090));
-                transport1.open();
+            System.out.println("List song of artist:");
+            performGetSongByArtist(client,"Ed Sheeran");
 
-                TProtocol protocol1 = new  TBinaryProtocol(transport1);
-                SongService.Client client1 = new SongService.Client(protocol1);
-                new Thread(() -> {
-                    for(int j =0 ;j < 10;j++){
-                        performLike(client1, 2);
-                    }
-                }).start();
-            }
+            performRemoveSong(client, 4);
+            performGetSongByArtist(client,"Ed Sheeran");
+//            for(int i = 0; i < 10; i++){
+//                TTransport transport1 = new TFramedTransport(new TSocket("localhost", 9090));
+//                transport1.open();
 //
-            for(int k = 0; k < 10; k++){
-                TTransport transport1 = new TFramedTransport(new TSocket("localhost", 9090));
-                transport1.open();
-
-                TProtocol protocol1 = new  TBinaryProtocol(transport1);
-                SongService.Client client1 = new SongService.Client(protocol1);
-                new Thread(() -> {
-                    for(int j =0 ;j < 10;j++){
-                        performIncreaseListen(client1, 2);
-                    }
-                }).start();
-            }
+//                TProtocol protocol1 = new  TBinaryProtocol(transport1);
+//                SongService.Client client1 = new SongService.Client(protocol1);
+//                new Thread(() -> {
+//                    for(int j =0 ;j < 10;j++){
+//                        performLike(client1, 2);
+//                    }
+//                }).start();
+//            }
+////
+//            for(int k = 0; k < 10; k++){
+//                TTransport transport1 = new TFramedTransport(new TSocket("localhost", 9090));
+//                transport1.open();
+//
+//                TProtocol protocol1 = new  TBinaryProtocol(transport1);
+//                SongService.Client client1 = new SongService.Client(protocol1);
+//                new Thread(() -> {
+//                    for(int j =0 ;j < 10;j++){
+//                        performIncreaseListen(client1, 2);
+//                    }
+//                }).start();
+//            }
 
 
         } catch (TException e) {

@@ -50,8 +50,8 @@ public class SongServer {
             TNonblockingServerSocket socket = new TNonblockingServerSocket(9090);
             TServer server = new TThreadedSelectorServer(new TThreadedSelectorServer.Args(socket)
                     .processor(processor)
-                    .selectorThreads(20)
-                    .workerThreads(512)
+                    .selectorThreads(3)
+                    .workerThreads(5)
             );
 
             System.out.println("starting the simple server...");
