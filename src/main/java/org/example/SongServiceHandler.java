@@ -26,6 +26,8 @@ public class SongServiceHandler implements SongService.Iface {
     final List<Object> lockListen = new ArrayList<Object>(10);
     Object lockId = new Object();
 
+    int currentId = 0;
+
 
     public SongServiceHandler() throws TException {
         Song song1 = new Song(1, "Photograph", Arrays.asList("Ed Sheeran"));
@@ -48,10 +50,12 @@ public class SongServiceHandler implements SongService.Iface {
     public ReturnCode addSong(Song song) throws TException {
         int id;
         synchronized (lockId) {
-            id = hashMapSong.size() + 1;
+            currentId = currentId + 1;
+            id = currentId;
+            song.setId(id);
+            hashMapSong.put(id, song);
         }
         // add new song to Song table
-        hashMapSong.put(id, song);
 
         // add artist to Artist table
         List<String> listArtist = song.getSinger();
